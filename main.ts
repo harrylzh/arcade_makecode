@@ -30,6 +30,10 @@ const COLOR_RED = 2
 const COLOR_GREEN = 7
 const COLOR_BLUE = 8
 //===========================class======================================
+
+//===========================class======================================
+
+//===========================class======================================
 class CSpriteShow {
     protected m_img: Image[]
     protected m_sp: Sprite
@@ -275,14 +279,9 @@ class CSpriteWarrior {
             sprites.castle.heroWalkFront1,
             SpriteKind.Player
         )
-        
-        
-        
-        
-        
     }
 
-    public setStayInScreen(val:boolean = true){
+    public setStayInScreen(val: boolean = true) {
         if (val) {
             this.m_hero.setStayInScreen(true)
             this.m_hero.bottom = 120
@@ -309,16 +308,17 @@ class CSpriteWarrior {
                 this.m_hero.x += 2
             } else if (controller.left.isPressed()) {
                 this.m_hero.x += -2
-            }            
+            }
         })
     }
 
     public contorl() {
         if (this.m_LF) {
-            controller.up.onEvent(ControllerButtonEvent.Pressed, function () {                
-                this.m_hero.vy += -100
+            controller.up.onEvent(ControllerButtonEvent.Pressed, function () {
+                // this.m_hero.vy += -100
+                spriteutils.jumpImpulse(this.m_hero, 34)
             })
-            
+
             this.controlDirection()
         } else {
             controller.moveSprite(this.m_hero, 100, 100)
@@ -326,14 +326,23 @@ class CSpriteWarrior {
                 this.walkUp()
             })
             controller.up.onEvent(ControllerButtonEvent.Released, function () {
-                animation.stopAnimation(animation.AnimationTypes.ImageAnimation,this.m_hero)
+                animation.stopAnimation(
+                    animation.AnimationTypes.ImageAnimation,
+                    this.m_hero
+                )
             })
             controller.down.onEvent(ControllerButtonEvent.Pressed, function () {
                 this.walkDown()
             })
-            controller.down.onEvent(ControllerButtonEvent.Released, function () {
-                animation.stopAnimation(animation.AnimationTypes.ImageAnimation,this.m_hero)
-            })
+            controller.down.onEvent(
+                ControllerButtonEvent.Released,
+                function () {
+                    animation.stopAnimation(
+                        animation.AnimationTypes.ImageAnimation,
+                        this.m_hero
+                    )
+                }
+            )
         }
 
         controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
@@ -341,7 +350,10 @@ class CSpriteWarrior {
         })
 
         controller.left.onEvent(ControllerButtonEvent.Released, function () {
-            animation.stopAnimation(animation.AnimationTypes.ImageAnimation,this.m_hero)
+            animation.stopAnimation(
+                animation.AnimationTypes.ImageAnimation,
+                this.m_hero
+            )
         })
 
         controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
@@ -349,9 +361,11 @@ class CSpriteWarrior {
         })
 
         controller.right.onEvent(ControllerButtonEvent.Released, function () {
-            animation.stopAnimation(animation.AnimationTypes.ImageAnimation,this.m_hero)
+            animation.stopAnimation(
+                animation.AnimationTypes.ImageAnimation,
+                this.m_hero
+            )
         })
-        
     }
 
     public walkUp() {
@@ -439,6 +453,210 @@ class CGameTileMaps extends CGame {
     }
 }
 //===========================class======================================
+class CGameText extends CGame {
+    private m_min: number
+    private m_max: number
+    private m_guess: CGuessNumber
+    constructor() {
+        super()
+    }
+
+    public init() {
+        this.m_guess = new CGuessNumber()
+
+        this.m_min = game.askForNumber("please input min number")
+        this.m_max = game.askForNumber("please input max number")
+
+        this.m_guess.setGuessRange(this.m_min, this.m_max)
+        this.m_guess.initNumberRandom()
+        game.splash(this.m_guess.getRelult())
+    }
+
+    public run() {
+        let end: boolean = false
+        let gn: number = 0
+        let word: string = "please guess number between"
+        while (!end) {
+            gn = game.askForNumber(word)
+            switch (this.m_guess.guessNumber(gn)) {
+                case Result_GuessNumber.BIGGER:
+                    word = "your guess is big"
+                    break
+                case Result_GuessNumber.SMALLER:
+                    word = "your guess is small"
+                    break
+                case Result_GuessNumber.EQUAL:
+                    end = true
+                    break
+            }
+        }
+
+        game.splash("you win")
+    }
+}
+//===========================class======================================
+enum Result_GuessNumber {
+    BIGGER,
+    EQUAL,
+    SMALLER,
+}
+class CGuessNumber {
+    private m_result: number
+    private m_min: number
+    private m_max: number
+
+    constructor() {}
+
+    public getMin() {
+        return this.m_min
+    }
+    public getMax() {
+        return this.m_max
+    }
+    public getRelult() {
+        return this.m_result
+    }
+
+    public setGuessRange(min: number, max: number) {
+        this.m_min = min
+        this.m_max = max
+    }
+
+    public initNumber(num: number) {
+        this.m_result = num
+    }
+
+    public initNumberRandom() {
+        this.m_result = randint(this.m_min, this.m_max)
+    }
+
+    public guessNumber(num: number) {
+        let r: Result_GuessNumber = null
+        if (this.m_result < num) {
+            r = Result_GuessNumber.BIGGER
+        } else if (this.m_result > num) {
+            r = Result_GuessNumber.SMALLER
+        } else {
+            r = Result_GuessNumber.EQUAL
+        }
+        return r
+    }
+}
+//===========================class======================================
+
+class CKnightWander {
+    private m_width: number
+    private m_height: number
+    private m_xStart: number
+    private m_yStart: number
+    private m_x: number[]
+    private m_y: number[]
+    private m_grid: number[][] = []
+    private m_depth: number = 1
+
+    constructor(width: number, height: number) {
+        this.m_width = width
+        this.m_height = height
+        this.m_xStart = 0
+        this.m_yStart = 0
+
+        this.m_x = [1, 1, -1, -1, 2, 2, -2, -2]
+        this.m_y = [2, -2, 2, -2, 1, -1, 1, -1]
+
+        for (let i = 0; i < this.m_height; i++) {
+            this.m_grid[i] = []
+            for (let j = 0; j < this.m_width; j++) {
+                this.m_grid[i][j] = 0
+            }
+        }
+    }
+
+    public run() {
+        this.m_grid[this.m_xStart][this.m_yStart] = 1
+
+        this.wander(this.m_xStart, this.m_yStart)
+        console.log("out run")
+    }
+
+    public canPlace(x: number, y: number): boolean {
+        if (x < 0 || x >= this.m_width) {
+            return false
+        }
+        if (x < 0 || x >= this.m_width) {
+            return false
+        }
+        if (this.m_grid[x][y] == 0) {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    public showBoard() {
+        let word:string = ""
+        for (let i = 0; i < this.m_height; i++) {
+            for (let j = 0; j < this.m_width; j++) {                                
+                
+                word += convertToText(this.m_grid[i][j]) + " "
+                
+            }
+            console.log(word)
+            word = ""
+            console.log("")            
+        }
+        console.log("=================")            
+
+    }
+
+    public wander(x: number, y: number) {
+        for (let index = 0; index < 8; index++) {
+            // console.logValue("x",x)
+            // console.logValue("m_x", this.m_x[index])
+
+            let nextX: number = x + this.m_x[index]
+            // console.logValue("nextX",nextX)
+
+            let nextY: number = y + this.m_y[index]
+            // console.logValue("nextY",nextY)
+
+            if (this.canPlace(nextX, nextY)) {
+                this.m_depth++
+                // console.log(
+                //     "goto x :" +
+                //         convertToText(nextX) +
+                //         " y : " +
+                //         convertToText(nextY)+" depth : "+convertToText(this.m_depth)
+                // )
+                this.m_grid[nextX][nextY] = this.m_depth
+                // if (this.m_depth == 8) {
+                if (this.m_depth == this.m_width*this.m_height) {
+                    this.showBoard()
+                }
+                this.wander(nextX, nextY)
+                this.m_grid[nextX][nextY] = 0
+                this.m_depth--                
+            }
+        }
+    }
+}
+//===========================class======================================
+class CGameKnightWander extends CGame {
+    constructor() {
+        super()
+    }
+
+    public init() {
+        // scene.setBackgroundColor(13)
+        // tiles.setCurrentTilemap(assets.tilemap`tileMap`)
+        tiles.setCurrentTilemap(assets.tilemap`checkerBoard3`)
+        // let sp : Sprite = sprites.create(sprites.duck.duck1, SpriteKind.Player)
+        // tiles.placeOnTile(sp, tiles.getTileLocation(0, 1))
+        let board: CKnightWander = new CKnightWander(5, 5)
+        board.run()
+    }
+    public run() {}
+}
+//===========================class======================================
 //====================function===========================
 function testSprite() {
     let sp = new CSpriteSpaceShow()
@@ -463,11 +681,25 @@ function runGameMap() {
     g.init()
     g.run()
 }
+
+function runGameText() {
+    let g: CGameText = new CGameText()
+    g.init()
+    g.run()
+}
+
+function runGameKnightWander() {
+    let g: CGameKnightWander = new CGameKnightWander()
+    g.init()
+    g.run()
+}
 //================main============================
 //================test============================
 // testSprite()
 //================run============================
 // runGameSapceShip()
 // runGameRPG()
-
-runGameMap()
+// runGameMap()
+// runGameText()
+spriteutils.setConsoleOverlay(true)
+runGameKnightWander()

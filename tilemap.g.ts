@@ -60,6 +60,12 @@ namespace myTiles {
 . . . . . . . . . . . . . . . . . . . . 
 . . . . . . . . . . . . . . . . . . . . 
 `, [myTiles.transparency16,sprites.builtin.forestTiles0], TileScale.Sixteen);
+            case "checkerBoard3":
+            case "checkerBoard1":return tiles.createTilemap(hex`03000300010605040208030709`, img`
+. . . 
+. . . 
+. . . 
+`, [myTiles.transparency16,sprites.castle.tilePath1,sprites.castle.tilePath5,sprites.castle.tilePath7,sprites.castle.tilePath4,sprites.castle.tilePath3,sprites.castle.tilePath2,sprites.castle.tilePath8,sprites.castle.tilePath6,sprites.castle.tilePath9], TileScale.Sixteen);
         }
         return null;
     })
